@@ -1,38 +1,35 @@
-import { Schema, model } from 'mongoose';
-import { createHash } from '../utils/hash.js';
+import mongoose from 'mongoose';
 
-const userSchema = new Schema({
-    first_name: { type: String, required: true },
-    last_name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    age: { type: Number, required: true },
-    password: { type: String, required: true },
-    cart: { type: Schema.Types.ObjectId, ref: 'cart' },
-    role: {
-      type: String,
-      required: true,
-      enum: ["admin", "user"],
-      default: "user",
+const userSchema = new mongoose.Schema({
+    firstName: {
+        type: String,
+        required: true
     },
-  });
+    lastName: {
+        type: String,
+        required: true
+    },
+    email: {
+        type: String,
+        unique: true,
+        required: true
+    },
+    password: {
+        type: String,
+        required: true
+    },
+    role: {
+        type: String,
+        enum: ['user', 'admin'],
+        default: 'user'
+    },
+    cart: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Cart',
+        required: true
+    }
+});
 
-  // Middleware para encriptar contraseña antes de guardar
-  userSchema.pre("save", async function(next){
-    if  (!this.isModified("password")) return next(); 
-    try {
-      this.password = await createHash(this.password);
-      next(); } catch (error) { next(error);}
-    });
+const User = mongoose.model('User', userSchema);
 
-
-
-  // Middleware de Mongoose 
-  userSchema.pre("save", async function(next){
-    if (this.email.includes("@") && this.email.includes(".")) {
-      return next();
-    } return next (new Error("Email format is invalid"))
-  });
-
-  export const userModel = model("user", userSchema);
-
-  
+export default User;

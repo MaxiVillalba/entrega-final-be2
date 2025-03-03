@@ -1,15 +1,12 @@
-import { Router } from 'express';
-import { productDBManager } from '../dao/productDBManager.js';
 import { cartDBManager } from '../dao/cartDBManager.js';
+import { productDBManager } from '../dao/productDBManager.js';
 
-const router = Router();
 const ProductService = new productDBManager();
 const CartService = new cartDBManager(ProductService);
 
-router.get('/:cid', async (req, res) => {
-
+export const getCartByID = async (req, res) => {
     try {
-        const result = await CartService.getProductsFromCartByID(req.params.cid);
+        const result = await CartService.getProductsFromCartByID(req.params.cid);  // Obtener productos en el carrito por ID
         res.send({
             status: 'success',
             payload: result
@@ -20,12 +17,11 @@ router.get('/:cid', async (req, res) => {
             message: error.message
         });
     }
-});
+};
 
-router.post('/', async (req, res) => {
-
+export const createCart = async (req, res) => {
     try {
-        const result = await CartService.createCart();
+        const result = await CartService.createCart();  // Crear un nuevo carrito
         res.send({
             status: 'success',
             payload: result
@@ -36,12 +32,11 @@ router.post('/', async (req, res) => {
             message: error.message
         });
     }
-});
+};
 
-router.post('/:cid/product/:pid', async (req, res) => {
-
+export const addProductToCart = async (req, res) => {
     try {
-        const result = await CartService.addProductByID(req.params.cid, req.params.pid)
+        const result = await CartService.addProductByID(req.params.cid, req.params.pid);  // Agregar producto al carrito
         res.send({
             status: 'success',
             payload: result
@@ -52,12 +47,11 @@ router.post('/:cid/product/:pid', async (req, res) => {
             message: error.message
         });
     }
-});
+};
 
-router.delete('/:cid/product/:pid', async (req, res) => {
-
+export const deleteProductFromCart = async (req, res) => {
     try {
-        const result = await CartService.deleteProductByID(req.params.cid, req.params.pid)
+        const result = await CartService.deleteProductByID(req.params.cid, req.params.pid);  // Eliminar producto del carrito
         res.send({
             status: 'success',
             payload: result
@@ -68,12 +62,11 @@ router.delete('/:cid/product/:pid', async (req, res) => {
             message: error.message
         });
     }
-});
+};
 
-router.put('/:cid', async (req, res) => {
-
+export const updateAllProductsInCart = async (req, res) => {
     try {
-        const result = await CartService.updateAllProducts(req.params.cid, req.body.products)
+        const result = await CartService.updateAllProducts(req.params.cid, req.body.products);  // Actualizar todos los productos en el carrito
         res.send({
             status: 'success',
             payload: result
@@ -84,12 +77,11 @@ router.put('/:cid', async (req, res) => {
             message: error.message
         });
     }
-});
+};
 
-router.put('/:cid/product/:pid', async (req, res) => {
-
+export const updateProductInCart = async (req, res) => {
     try {
-        const result = await CartService.updateProductByID(req.params.cid, req.params.pid, req.body.quantity)
+        const result = await CartService.updateProductByID(req.params.cid, req.params.pid, req.body.quantity);  // Actualizar cantidad de un producto en el carrito
         res.send({
             status: 'success',
             payload: result
@@ -100,12 +92,11 @@ router.put('/:cid/product/:pid', async (req, res) => {
             message: error.message
         });
     }
-});
+};
 
-router.delete('/:cid', async (req, res) => {
-
+export const deleteAllProductsFromCart = async (req, res) => {
     try {
-        const result = await CartService.deleteAllProducts(req.params.cid)
+        const result = await CartService.deleteAllProducts(req.params.cid);  // Eliminar todos los productos del carrito
         res.send({
             status: 'success',
             payload: result
@@ -116,6 +107,4 @@ router.delete('/:cid', async (req, res) => {
             message: error.message
         });
     }
-});
-
-export default router;
+};
