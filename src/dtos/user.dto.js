@@ -1,10 +1,7 @@
-class UserDTO {
-    constructor({ _id, name, email, role }) {
-        this.id = _id;
-        this.name = name;
-        this.email = email;
-        this.role = role;
-    }
-}
+import Joi from "joi";
 
-export default UserDTO;
+export const userDto = Joi.object({
+    name: Joi.string().required(),
+    email: Joi.string().email().required(),
+    role: Joi.string().valid("user", "admin", "guest").default("user"),
+});

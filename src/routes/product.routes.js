@@ -1,13 +1,11 @@
-import { Router } from "express";
-import { ProductController } from "../controllers/product.controller.js";
-import { uploader } from "../utils/multerUtil.js";
+import express from "express";
+import { productController } from "../controllers/product.controller.js";
 
-const productRouter = Router();
+const router = express.Router();
 
-productRouter.get("/", ProductController.getAllProducts);
-productRouter.get("/:pid", ProductController.getProductById);
-productRouter.post("/", uploader.array("thumbnails", 3), ProductController.createProduct);
-productRouter.put("/:pid", uploader.array("thumbnails", 3), ProductController.updateProduct);
-productRouter.delete("/:pid", ProductController.deleteProduct);
+router.get("/", productController.getAll);
+router.get("/:id", productController.getById);
+router.post("/", productController.create);
+router.put("/:id", productController.update);
 
-export default productRouter;
+export default router;

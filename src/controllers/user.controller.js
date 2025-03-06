@@ -1,10 +1,10 @@
-import { cartService } from "../services/cart.service.js";
+import { userService } from "../services/user.service.js";
 
-class CartController {
+class UserController {
   async getAll(req, res) {
     try {
-      const carts = await cartService.getAll();
-      res.status(200).json({ carts });
+      const users = await userService.getAll();
+      res.status(200).json({ users });
     } catch (error) {
       res.status(500).json({
         error: "Internal server error",
@@ -16,15 +16,15 @@ class CartController {
   async getById(req, res) {
     try {
       const { id } = req.params;
-      const cart = await cartService.getById({ id });
+      const user = await userService.getById({ id });
 
-      if (!cart) {
+      if (!user) {
         return res.status(404).json({
-          error: "Cart not found",
+          error: "User not found",
         });
       }
 
-      res.status(200).json({ cart });
+      res.status(200).json({ user });
     } catch (error) {
       res.status(500).json({
         error: "Internal server error",
@@ -35,11 +35,11 @@ class CartController {
 
   async create(req, res) {
     try {
-      const cart = await cartService.create({
-        cart: req.body,
+      const user = await userService.create({
+        user: req.body,
       });
 
-      res.status(201).json({ cart });
+      res.status(201).json({ user });
     } catch (error) {
       res.status(500).json({
         error: "Internal server error",
@@ -51,15 +51,15 @@ class CartController {
   async update(req, res) {
     try {
       const { id } = req.params;
-      const cart = await cartService.update({ id, cart: req.body });
+      const user = await userService.update({ id, user: req.body });
 
-      if (!cart) {
+      if (!user) {
         return res.status(404).json({
-          error: "Cart not found",
+          error: "User not found",
         });
       }
 
-      res.status(200).json({ cart });
+      res.status(200).json({ user });
     } catch (error) {
       res.status(500).json({
         error: "Internal server error",
@@ -69,4 +69,4 @@ class CartController {
   }
 }
 
-export const cartController = new CartController();
+export const userController = new UserController();

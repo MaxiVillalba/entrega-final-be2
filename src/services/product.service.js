@@ -1,28 +1,26 @@
-import ProductManager from "../managers/ProductManager.js";
+import { Product } from "../models/product.model.js";
 
 class ProductService {
-    async getAllProducts(params) {
-        return await ProductManager.getAllProducts(params);
+    async getAll() {
+        return Product.find();
     }
 
-    async getProductByID(pid) {
-        return await ProductManager.getProductByID(pid);
+    /**
+     *
+     * @param { string } id
+     * @returns { Promise<Product> }
+     */
+    async getById({ id }) {
+        return Product.findById(id);
     }
 
-    async createProduct(data) {
-        if (!data.title || !data.price || !data.stock) {
-            throw new Error("Datos incompletos");
-        }
-        return await ProductManager.createProduct(data);
+    async create({ product }) {
+        return Product.create(product);
     }
 
-    async updateProduct(pid, updateData) {
-        return await ProductManager.updateProduct(pid, updateData);
-    }
-
-    async deleteProduct(pid) {
-        return await ProductManager.deleteProduct(pid);
+    async update({ id, product }) {
+        return Product.findByIdAndUpdate(id, product, { new: true });
     }
 }
 
-export default new ProductService();
+export const productService = new ProductService();

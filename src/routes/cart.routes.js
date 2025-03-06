@@ -1,14 +1,12 @@
 import { Router } from "express";
-import { CartController } from "../controllers/cart.controller.js";
 
-const cartRouter = Router();
+import { cartDto } from "../dtos/cart.dto.js";
+import { validateDto } from "../middlewares/validate-dto.middleware.js";
+import { cartController } from "../controllers/cart.controller.js";
 
-cartRouter.get("/:cid", CartController.getCartById);
-cartRouter.post("/", CartController.createCart);
-cartRouter.post("/:cid/product/:pid", CartController.addProductToCart);
-cartRouter.delete("/:cid/product/:pid", CartController.removeProductFromCart);
-cartRouter.put("/:cid", CartController.updateCart);
-cartRouter.put("/:cid/product/:pid", CartController.updateProductInCart);
-cartRouter.delete("/:cid", CartController.clearCart);
+export const cartRoutes = Router();
 
-export default cartRouter;
+cartRoutes.get("/", cartController.getAll);
+cartRoutes.get("/:id", cartController.getById);
+cartRoutes.post("/", validateDto(cartDto), cartController.create);
+cartRoutes.put("/:id", cartController.update);

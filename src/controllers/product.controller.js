@@ -1,78 +1,72 @@
-import { productDBManager } from '../dao/productDBManager.js';
+import { productService } from "../services/product.service.js";
 
-const ProductService = new productDBManager();
-
-export const getAllProducts = async (req, res) => {
+class ProductController {
+  async getAll(req, res) {
     try {
-        const result = await ProductService.getAllProducts(req.query);  // Obtener productos con parámetros de consulta
-        res.send({
-            status: 'success',
-            payload: result
-        });
+      const products = await productService.getAll();
+      res.status(200).json({ products });
     } catch (error) {
-        res.status(400).send({
-            status: 'error',
-            message: error.message
-        });
+      res.status(500).json({
+        error: "Internal server error",
+        details: error.message,
+      });
     }
-};
+  }
 
-export const getProductByID = async (req, res) => {
+  async getById(req, res) {
     try {
-        const result = await ProductService.getProductByID(req.params.pid);  // Obtener producto por ID
-        res.send({
-            status: 'success',
-            payload: result
-        });
-    } catch (error) {
-        res.status(400).send({
-            status: 'error',
-            message: error.message
-        });
-    }
-};
+      const { id } = req.params;
+      const product = await productService.getById({ id });
 
-export const createProduct = async (req, res) => {
-    try {
-        const result = await ProductService.createProduct(req.body);  // Crear un nuevo producto
-        res.status(201).send({
-            status: 'success',
-            payload: result
+      if (!product) {
+        return res.status(404).json({
+          error: "Product not found",
         });
-    } catch (error) {
-        res.status(400).send({
-            status: 'error',
-            message: error.message
-        });
-    }
-};
+      }
 
-export const updateProduct = async (req, res) => {
-    try {
-        const result = await ProductService.updateProduct(req.params.pid, req.body);  // Actualizar producto
-        res.send({
-            status: 'success',
-            payload: result
-        });
+      res.status(200).json({ product });
     } catch (error) {
-        res.status(400).send({
-            status: 'error',
-            message: error.message
-        });
+      res.status(500).json({
+        error: "Internal server error",
+        details: error.message,
+      });
     }
-};
+  }
 
-export const deleteProduct = async (req, res) => {
+  async create(req, res) {
     try {
-        const result = await ProductService.deleteProduct(req.params.pid);  // Eliminar producto por ID
-        res.send({
-            status: 'success',
-            payload: result
-        });
+      const product = await productService.create({
+        product: req.body,
+      });
+
+      res.status(201).json({ product });
     } catch (error) {
-        res.status(400).send({
-            status: 'error',
-            message: error.message
-        });
+      res.status(500).json({
+        error: "Internal server error",
+        details: error.message,
+      });
     }
-};
+  }
+
+  async update(req, res) {
+    try {
+      const { id } = req.params;
+      const product = await productService.update({ id, product: req.body });
+
+      if (!product) {
+        return res.status(404).json({
+          error: "Product not found",
+        });
+      }
+
+      res.status(200).json({ product });
+    } catch (error) {
+      res.status(500).json({
+        error: "Internal server error",
+        details: error.message,
+      });
+    }
+  }
+}
+
+export const productController = new ProductController();

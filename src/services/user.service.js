@@ -1,33 +1,26 @@
-import UserManager from "../managers/UserManager.js";
-import bcrypt from "bcrypt";
+import { User } from "../models/user.model.js";
 
 class UserService {
-    async getAllUsers() {
-        return await UserManager.getAllUsers();
-    }
+  async getAll() {
+    return User.find();
+  }
 
-    async getUserByID(uid) {
-        return await UserManager.getUserByID(uid);
-    }
+  /**
+   *
+   * @param { string } id
+   * @returns { Promise<User> }
+   */
+  async getById({ id }) {
+    return User.findById(id);
+  }
 
-    async getUserByEmail(email) {
-        return await UserManager.getUserByEmail(email);
-    }
+  async create({ user }) {
+    return User.create(user);
+  }
 
-    async createUser(data) {
-        const existingUser = await this.getUserByEmail(data.email);
-        if (existingUser) throw new Error("El usuario ya existe!");
-
-        // Encriptar contraseña
-        const hashedPassword = await bcrypt.hash(data.password, 10);
-        data.password = hashedPassword;
-
-        return await UserManager.createUser(data);
-    }
-
-    async deleteUser(uid) {
-        return await UserManager.deleteUser(uid);
-    }
+  async update({ id, user }) {
+    return User.findByIdAndUpdate(id, user, { new: true });
+  }
 }
 
-export default new UserService();
+export const userService = new UserService();
