@@ -16,4 +16,3 @@ const cartSchema = new Schema({
 })
 
 export const Cart = model("cart", cartSchema);
-

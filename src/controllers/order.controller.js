@@ -1,6 +1,6 @@
 import { userService } from "../services/user.service.js";
 import { orderService } from "../services/order.service.js";
-import { businessService } from "../services/business.service.js";
+import { cartService } from "../services/cart.service.js";
 
 class OrderController {
   async getAll(req, res) {
@@ -37,48 +37,48 @@ class OrderController {
 
   async create(req, res) {
     try {
-      const {
-        user: userId,
-        business: businessId,
-        products: productsIds,
-      } = req.body;
+      const { user: userId, cart: cartId } = req.body;
 
+      // Validar si el usuario existe
       const user = await userService.getById({ id: userId });
-
-      if (!user) return res.status(404).json({ error: "User not found" });
-
-      const business = await businessService.getById({ id: businessId });
-
-      if (!business)
-        return res.status(404).json({ error: "Business not found" });
-
-      const products = business.products.filter((product) => {
-        return productsIds.includes(product._id.toString());
-      });
-
-      if (products.length !== productsIds.length) {
-        return res.status(400).json({ error: "Invalid products ids" });
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
       }
 
-      const totalPrice = products.reduce((acc, product) => {
-        return acc + product.price;
-      }, 0);
+      // Validar si el carrito existe
+      const cart = await cartService.getById(cartId);
+      if (!cart) {
+        return res.status(404).json({ error: "Cart not found" });
+      }
+
+      // Obtener los productos del carrito y calcular el total
+      const products = cart.products.map(p => ({
+        product: p.product._id,
+        quantity: p.quantity,
+        price: p.product.price
+      }));
+
+      // Validar que los productos tienen precios válidos
+      const total = products.reduce((acc, product) => acc + product.price * product.quantity, 0);
 
       const orderNumber = await orderService.getOrderNumber();
 
-      const order = await orderService.create({
-        order: {
-          number: orderNumber,
-          business: businessId,
-          user: userId,
-          products,
-          totalPrice,
-        },
+      const newOrder = await orderService.create({
+        ticketNumber: orderNumber,
+        user: userId,
+        cart: cartId,
+        products,
+        total,
+        status: req.body.status || "pending",  // Estado por defecto si no se proporciona
       });
 
-      res.status(201).json({ order });
+      // Asociar la orden con el usuario
+      user.orders.push(newOrder._id);
+      await user.save();
+
+      // Responder con la orden creada
+      res.status(201).json({ order: newOrder });
     } catch (error) {
-      console.log(error);
       res.status(500).json({
         error: "Internal server error",
         details: error.message,
@@ -113,9 +113,29 @@ class OrderController {
 
       order.status = resolve;
 
-      const updatedOrder = await orderService.update({ id, order });
+      const updatedOrder = await orderService.update(id, order);
 
       res.status(200).json({ order: updatedOrder });
+    } catch (error) {
+      res.status(500).json({
+        error: "Internal server error",
+        details: error.message,
+      });
+    }
+  }
+
+  async delete(req, res) {
+    try {
+      const { id } = req.params;
+      const order = await orderService.delete(id);
+
+      if (!order) {
+        return res.status(404).json({
+          error: "Order not found",
+        });
+      }
+
+      res.status(200).json({ message: "Order deleted successfully" });
     } catch (error) {
       res.status(500).json({
         error: "Internal server error",

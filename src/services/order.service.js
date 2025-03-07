@@ -1,12 +1,12 @@
 import { Order } from "../models/order.model.js";
 
-class OrderService{
-    async getAll() {
-        return Order.find().populate('user').populate('products.product').populate('cart');
+class OrderService {
+  async getAll() {
+    return Order.find();
   }
 
   async getById({ id }) {
-    return Order.findById(id).populate('user').populate('products.product').populate('cart');
+    return Order.findById(id);
   }
 
   async create({ order }) {
@@ -14,11 +14,15 @@ class OrderService{
   }
 
   async update({ id, order }) {
-    return Order.findByIdAndUpdate(id, order, { new: true }).populate('user').populate('products.product').populate('cart');
+    return Order.findByIdAndUpdate(id, order, { new: true });
   }
 
   async getOrderNumber() {
     return Number(Date.now() + Math.floor(Math.random() * 10000 + 1));
+  }
+  
+  async delete(id) {
+    return Order.findByIdAndDelete(id);
   }
 }
 

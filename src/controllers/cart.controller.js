@@ -16,7 +16,7 @@ class CartController {
   async getById(req, res) {
     try {
       const { id } = req.params;
-      const cart = await cartService.getById({ id });
+      const cart = await cartService.getById(id); // Eliminando el objeto de argumento innecesario
 
       if (!cart) {
         return res.status(404).json({
@@ -35,9 +35,7 @@ class CartController {
 
   async create(req, res) {
     try {
-      const cart = await cartService.create({
-        cart: req.body,
-      });
+      const cart = await cartService.create(req.body); // Simplificando la llamada al servicio
 
       res.status(201).json({ cart });
     } catch (error) {
@@ -51,7 +49,7 @@ class CartController {
   async update(req, res) {
     try {
       const { id } = req.params;
-      const cart = await cartService.update({ id, cart: req.body });
+      const cart = await cartService.update(id, req.body); // Simplificando la llamada al servicio
 
       if (!cart) {
         return res.status(404).json({
@@ -60,6 +58,26 @@ class CartController {
       }
 
       res.status(200).json({ cart });
+    } catch (error) {
+      res.status(500).json({
+        error: "Internal server error",
+        details: error.message,
+      });
+    }
+  }
+
+  async delete(req, res) {
+    try {
+      const { id } = req.params;
+      const cart = await cartService.delete(id); // Simplificando la llamada al servicio
+
+      if (!cart) {
+        return res.status(404).json({
+          error: "Cart not found",
+        });
+      }
+
+      res.status(200).json({ message: "Cart deleted successfully" });
     } catch (error) {
       res.status(500).json({
         error: "Internal server error",
