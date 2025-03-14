@@ -1,31 +1,25 @@
-import { User } from "../models/user.model.js";
+import { userDAO } from "../daos/user.dao.js";
 
 class UserService {
   async getAll() {
-    return User.find();
+    return userDAO.getAll();
   }
 
-  /**
-   * 
-   * @param { string } id 
-   * @returns { Promise<User> } 
-   */
-  async getById({ id }) {
-    return User.findById(id);
+  async getById(id) {
+    return userDAO.getById(id);
   }
 
   async create(user) {
-    return User.create(user);
+    return userDAO.create(user);
   }
 
   async update(id, user) {
-    return User.findByIdAndUpdate(id, user, { new: true });
+    return userDAO.update(id, user);
   }
 
   async delete(id) {
     try {
-      const user = await User.findByIdAndDelete(id);
-      return user;
+      return await userDAO.delete(id);
     } catch (error) {
       throw new Error("Error deleting user: " + error.message);
     }

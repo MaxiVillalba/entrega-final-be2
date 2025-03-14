@@ -1,25 +1,25 @@
-import ProductModel from "../models/Product.js";
+import { Cart } from "../models/cart.model.js";
 
-class ProductDAO {
-    async getAll() {
-        return await ProductModel.find();
-    }
+class CartDAO {
+  async getAll() {
+    return Cart.find();
+  }
 
-    async getById(id) {
-        return await ProductModel.findById(id);
-    }
+  async getById(id) {
+    return Cart.findById(id);
+  }
 
-    async create(productData) {
-        return await ProductModel.create(productData);
-    }
+  async create(cart) {
+    return Cart.create(cart);
+  }
 
-    async update(id, updatedData) {
-        return await ProductModel.findByIdAndUpdate(id, updatedData, { new: true });
-    }
+  async update(id, cart) {
+    return Cart.findByIdAndUpdate(id, cart, { new: true });
+  }
 
-    async delete(id) {
-        return await ProductModel.findByIdAndDelete(id);
-    }
+  async delete(id) {
+    return Cart.findByIdAndDelete(id);
+  }
 }
 
-export default new ProductDAO();
+export const cartDAO = new CartDAO();

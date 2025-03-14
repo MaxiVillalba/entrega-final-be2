@@ -1,30 +1,29 @@
-import { Product } from "../models/product.model.js";
+import { productDAO } from "../daos/product.dao.js";
 
 class ProductService {
-    async getAll() {
-        return Product.find(); 
-    }
+  async getAll() {
+    return productDAO.getAll();
+  }
 
-    async getById({ id }) {
-        return Product.findById(id); 
-    }
+  async getById(id) {
+    return productDAO.getById(id);
+  }
 
-    async create(product) { 
-        return Product.create(product); 
-    }
+  async create(product) {
+    return productDAO.create(product);
+  }
 
-    async update(id, product) { 
-        return Product.findByIdAndUpdate(id, product, { new: true });
-    }
+  async update(id, product) {
+    return productDAO.update(id, product);
+  }
 
-    async delete(id) { 
-        try {
-            const product = await Product.findByIdAndDelete(id);
-            return product;
-        } catch (error) {
-            throw new Error("Error deleting product: " + error.message);
-        }
+  async delete(id) {
+    try {
+      return await productDAO.delete(id);
+    } catch (error) {
+      throw new Error("Error deleting product: " + error.message);
     }
+  }
 }
 
 export const productService = new ProductService();

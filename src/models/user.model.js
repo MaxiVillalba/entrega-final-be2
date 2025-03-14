@@ -1,29 +1,31 @@
 import { Schema, model } from "mongoose";
 
-const userSchema = new Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  role: {
-    type: String,
-    required: true,
-    enum: ["user", "admin", "guest"],
-    default: "user",
+const userSchema = new Schema(
+  {
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    role: {
+      type: String,
+      required: true,
+      enum: ["user", "admin", "guest"],
+      default: "user",
+    },
+    orders: {
+      type: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "Order", // Asegúrate de que el modelo "Order" exista
+        },
+      ],
+      default: [],
+    },
+    cart: {
+      type: Schema.Types.ObjectId,
+      ref: "Cart", // Referencia a Cart
+      default: null, // Si no hay carrito asignado
+    },
   },
+  { timestamps: true } // Añadimos soporte de timestamps para fechas
+);
 
-  orders: {
-    type: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "order",
-      },
-    ],
-    default: [],
-  },
-
-  cart: {
-    type: Schema.Types.ObjectId,
-    ref: "cart",
-  }
-});
-
-export const User = model("user", userSchema);
+export const User = model("User", userSchema);

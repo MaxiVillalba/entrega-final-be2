@@ -1,33 +1,25 @@
-import userModel from "../models/user.model.js";
+import { User } from "../models/user.model.js";
 
 class UserDAO {
-    async getAllUsers() {
-        return await userModel.find();
-    }
+  async getAll() {
+    return User.find();
+  }
 
-    async getUserByID(uid) {
-        const user = await userModel.findById(uid);
-        if (!user) throw new Error(`El usuario ${uid} no existe!`);
-        return user;
-    }
+  async getById(id) {
+    return User.findById(id);
+  }
 
-    async getUserByEmail(email) {
-        return await userModel.findOne({ email });
-    }
+  async create(user) {
+    return User.create(user);
+  }
 
-    async createUser(data) {
-        const { name, email, password, role } = data;
-        if (!name || !email || !password) {
-            throw new Error("Faltan datos obligatorios para crear el usuario.");
-        }
-        return await userModel.create({ name, email, password, role: role || "user" });
-    }
+  async update(id, user) {
+    return User.findByIdAndUpdate(id, user, { new: true });
+  }
 
-    async deleteUser(uid) {
-        const result = await userModel.findByIdAndDelete(uid);
-        if (!result) throw new Error(`El usuario ${uid} no existe!`);
-        return result;
-    }
+  async delete(id) {
+    return User.findByIdAndDelete(id);
+  }
 }
 
-export default new UserDAO();
+export const userDAO = new UserDAO();

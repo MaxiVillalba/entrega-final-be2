@@ -1,5 +1,4 @@
 import { Router } from "express";
-
 import { cartDto } from "../dtos/cart.dto.js";
 import { validateDto } from "../middlewares/validate.dto.middleware.js";
 import { cartController } from "../controllers/cart.controller.js";

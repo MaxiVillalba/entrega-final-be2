@@ -1,7 +1,7 @@
 import { createTransport } from "nodemailer";
 
 import { CONFIG } from "../config/config.js";
-import { EMAIL_TYPES } from "../common/constants/email-types.js";
+import { EMAIL_TYPES } from "../common/constants/email.types.js";
 
 class MailService {
   constructor() {
@@ -27,15 +27,23 @@ class MailService {
       case EMAIL_TYPES.WELCOME:
         message += `
           <h3 style="color: darkblue">
-            ¡Esto es EFBE2-STORE!
+            ¡Bienvenido a EFBE2-STORE!
           </h3>
-
           <br>
-          
-          Gracias por comprar en EFBE2.
+          Gracias por registrarte en EFBE2.
+        `;
+        break;
+      case EMAIL_TYPES.PASSWORD_RESET:
+        message += `
+          <h3 style="color: darkred">
+            Restablecimiento de Contraseña
+          </h3>
+          <br>
+          Hemos recibido una solicitud para restablecer tu contraseña. Si no realizaste esta solicitud, por favor ignora este correo.
         `;
         break;
     }
+   
 
     message += `
       <br>

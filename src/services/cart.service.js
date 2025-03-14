@@ -1,24 +1,24 @@
-import { Cart } from "../models/cart.model.js";
+import { cartDAO } from "../daos/cart.dao.js";
 
 class CartService {
   async getAll() {
-    return Cart.find();
+    return cartDAO.getAll();
   }
 
-  async getById(id) { // Eliminando el objeto de argumento innecesario
-    return Cart.findById(id);
+  async getById(id) {
+    return cartDAO.getById(id);
   }
 
-  async create(cart) { // Eliminando el objeto de argumento innecesario
-    return Cart.create(cart);
+  async create(cart) {
+    return cartDAO.create(cart);
   }
 
-  async update(id, cart) { // Eliminando el objeto de argumento innecesario
-    return Cart.findByIdAndUpdate(id, cart, { new: true });
+  async update(id, cart) {
+    return cartDAO.update(id, cart);
   }
 
   async delete(id) {
-    return Cart.findByIdAndDelete(id);
+    return cartDAO.delete(id);
   }
 }
 

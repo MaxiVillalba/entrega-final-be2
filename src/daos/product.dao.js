@@ -1,39 +1,25 @@
-import productModel from "../models/productModel.js";
+import { Product } from "../models/product.model.js";
 
 class ProductDAO {
-    async getAllProducts({ page = 1, limit = 10, sort }) {
-        const options = { page: parseInt(page), limit: parseInt(limit) };
-        if (sort) options.sort = { price: sort === "asc" ? 1 : -1 };
+  async getAll() {
+    return Product.find();
+  }
 
-        const products = await productModel.paginate({}, options);
-        return products;
-    }
+  async getById(id) {
+    return Product.findById(id);
+  }
 
-    async getProductByID(pid) {
-        const product = await productModel.findById(pid);
-        if (!product) throw new Error(`El producto ${pid} no existe!`);
-        return product;
-    }
+  async create(product) {
+    return Product.create(product);
+  }
 
-    async createProduct(data) {
-        const { title, description, code, price, stock, category, thumbnails } = data;
-        if (!title || !description || !code || !price || !stock || !category) {
-            throw new Error("Faltan datos obligatorios para crear el producto.");
-        }
-        return await productModel.create({ title, description, code, price, stock, category, thumbnails });
-    }
+  async update(id, product) {
+    return Product.findByIdAndUpdate(id, product, { new: true });
+  }
 
-    async updateProduct(pid, updateData) {
-        const product = await productModel.findByIdAndUpdate(pid, updateData, { new: true });
-        if (!product) throw new Error(`El producto ${pid} no existe!`);
-        return product;
-    }
-
-    async deleteProduct(pid) {
-        const result = await productModel.findByIdAndDelete(pid);
-        if (!result) throw new Error(`El producto ${pid} no existe!`);
-        return result;
-    }
+  async delete(id) {
+    return Product.findByIdAndDelete(id);
+  }
 }
 
-export default new ProductDAO();
+export const productDAO = new ProductDAO();

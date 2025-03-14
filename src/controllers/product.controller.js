@@ -1,84 +1,130 @@
 import { productService } from "../services/product.service.js";
 
 class ProductController {
-  async getAll(req, res) {
+  /**
+   * Obtiene todos los productos.
+   */
+  async getAll(req, res, next) {
     try {
       const products = await productService.getAll();
-      if (!products.length) {
+
+      if (!products || products.length === 0) {
         return res.status(404).json({ message: "No products found" });
       }
-      res.status(200).json({ products });
+
+      return res.status(200).json({ products });
     } catch (error) {
-      res.status(500).json({ error: "Internal server error", details: error.message });
+      next(error);
     }
   }
 
-  async getById(req, res) {
+  /**
+   * Obtiene un producto por su ID.
+   */
+  async getById(req, res, next) {
     try {
       const { id } = req.params;
-      const product = await productService.getById({ id });
+
+      // Validación de ID
+      if (!id || isNaN(id)) {
+        return res.status(400).json({ error: "Invalid product ID" });
+      }
+
+      const product = await productService.getById(Number(id));
 
       if (!product) {
         return res.status(404).json({ error: "Product not found" });
       }
 
-      res.status(200).json({ product });
+      return res.status(200).json({ product });
     } catch (error) {
-      res.status(500).json({ error: "Internal server error", details: error.message });
+      next(error);
     }
   }
 
-  async create(req, res) {
+  /**
+   * Crea un nuevo producto.
+   */
+  async create(req, res, next) {
     try {
-      const { title, description, price, thumbnails, code, stock, category, color, size } = req.body;
-      
-      if (!title || !description || !price || !thumbnails?.length || !code || !stock || !category || !color || !size) {
-        return res.status(400).json({ error: "All fields, including at least one thumbnail, are required" });
+      console.log("🟢 Datos recibidos en req.body:", req.body);
+
+      const requiredFields = ["title", "description", "price", "thumbnails", "code", "stock", "category", "color", "size"];
+
+      // Validación de campos requeridos
+      for (const field of requiredFields) {
+        if (!req.body[field] || (field === "thumbnails" && req.body[field].length === 0)) {
+          return res.status(400).json({ error: `Field '${field}' is required` });
+        }
       }
 
-      const product = await productService.create({ title, description, price, thumbnails, code, stock, category, color, size });
+      const product = await productService.create(req.body);
 
-      res.status(201).json({ product });
+      console.log("✅ Producto creado con éxito:", product);
+
+      return res.status(201).json({ product });
     } catch (error) {
-      res.status(500).json({ error: "Internal server error", details: error.message });
+      next(error);
     }
   }
 
-  async update(req, res) {
+  /**
+   * Actualiza un producto por su ID.
+   */
+  async update(req, res, next) {
     try {
       const { id } = req.params;
-      const { title, description, price, thumbnails, code, stock, category, color, size } = req.body;
-      
-      if (!title || !description || !price || !thumbnails?.length || !code || !stock || !category || !color || !size) {
-        return res.status(400).json({ error: "All fields are required" });
+
+      // Validación de ID
+      if (!id || isNaN(id)) {
+        return res.status(400).json({ error: "Invalid product ID" });
       }
 
-      const product = await productService.update(id, { title, description, price, thumbnails, code, stock, category, color, size });
+      const requiredFields = ["title", "description", "price", "thumbnails", "code", "stock", "category", "color", "size"];
+
+      // Validación de datos de actualización
+      for (const field of requiredFields) {
+        if (!req.body[field] || (field === "thumbnails" && req.body[field].length === 0)) {
+          return res.status(400).json({ error: `Field '${field}' is required` });
+        }
+      }
+
+      const product = await productService.update(Number(id), req.body);
 
       if (!product) {
         return res.status(404).json({ error: "Product not found" });
       }
 
-      res.status(200).json({ product });
+      return res.status(200).json({ product });
     } catch (error) {
-      res.status(500).json({ error: "Internal server error", details: error.message });
+      next(error);
     }
   }
 
-  async delete(req, res) {
+  /**
+   * Elimina un producto por su ID.
+   */
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
-      const product = await productService.delete(id);
 
-      if (!product) {
+      // Validación de ID
+      if (!id || isNaN(id)) {
+        return res.status(400).json({ error: "Invalid product ID" });
+      }
+
+      const deleted = await productService.delete(Number(id));
+
+      if (!deleted) {
         return res.status(404).json({ error: "Product not found" });
       }
 
-      res.status(200).json({ message: "Product deleted successfully" });
+      return res.status(200).json({ message: "Product deleted successfully" });
     } catch (error) {
-      res.status(500).json({ error: "Internal server error", details: error.message });
+      next(error);
     }
   }
 }
 
+// Exportamos la instancia del controlador para su uso en rutas
 export const productController = new ProductController();
