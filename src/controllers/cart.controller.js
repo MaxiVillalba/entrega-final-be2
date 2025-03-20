@@ -1,4 +1,6 @@
 import { cartService } from "../services/cart.service.js";
+import { mailService } from "../services/mail.service.js";
+import { generateTicket } from "../utils/ticket.util.js";
 
 class CartController {
   async getAll(req, res, next) {
@@ -79,6 +81,31 @@ class CartController {
       }
 
       return res.status(200).json({ message: "Cart deleted successfully" });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async checkout(req, res, next) {
+    try {
+      const userId = req.user.id;  
+      const cart = await cartService.getByUserId(userId);
+
+      if (!cart || cart.items.length === 0) {
+        return res.status(400).json({ error: "El carrito está vacío o no existe." });
+      }
+
+     
+      const ticket = generateTicket(req.user); 
+
+      await mailService.sendMail({
+        to: req.user.email,
+        subject: "Confirmación de compra",
+        type: "PURCHASE_CONFIRMATION",  
+        ticket: ticket,  
+      });
+
+      return res.status(200).json({ message: "Checkout exitoso", ticket });  
     } catch (error) {
       next(error);
     }

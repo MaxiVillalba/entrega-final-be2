@@ -1,8 +1,11 @@
+// src/models/user.model.js
+
 import { Schema, model } from "mongoose";
 
 const userSchema = new Schema(
   {
     name: { type: String, required: true },
+    lastName: { type: String, required: true }, // Añadido el campo lastName
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     role: {
       type: String,

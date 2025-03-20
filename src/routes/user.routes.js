@@ -10,3 +10,4 @@ userRoutes.get("/:id", userController.getById);
 userRoutes.post("/", validateDto(userDto), userController.create);
 userRoutes.put("/:id", userController.update);
 userRoutes.delete("/:id", userController.delete);
+userRoutes.delete("/all", userController.deleteAll);

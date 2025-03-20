@@ -5,6 +5,10 @@ export const userDto = Joi.object({
         'string.min': 'Name must be at least 3 characters long',
         'string.max': 'Name must be less than 100 characters long',
     }),
+    lastName: Joi.string().min(3).max(100).required().messages({
+        'string.min': 'Last name must be at least 3 characters long',
+        'string.max': 'Last name must be less than 100 characters long',
+    }),
     email: Joi.string().email().required().messages({
         'string.email': 'Email must be a valid email address',
     }),

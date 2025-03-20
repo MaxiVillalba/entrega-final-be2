@@ -1,3 +1,4 @@
+// src/server.js
 import morgan from "morgan";
 import express from "express";
 import { connect } from "mongoose";

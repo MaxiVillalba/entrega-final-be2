@@ -1,5 +1,8 @@
+// src/controllers/user.controller.js
+import mongoose from "mongoose";
 import { mailService } from "../services/mail.service.js";
 import { userService } from "../services/user.service.js";
+import { generateTicket } from "../utils/ticket.util.js";
 // import { smsService } from "../services/sms.service.js"; // Aún no se implementa
 
 class UserController {
@@ -13,11 +16,9 @@ class UserController {
     }
   }
 
-
   async getById(req, res, next) {
     try {
       const { id } = req.params;
-
 
       if (!id || isNaN(id)) {
         return res.status(400).json({ error: "Invalid user ID" });
@@ -35,39 +36,57 @@ class UserController {
     }
   }
 
-
   async create(req, res, next) {
     try {
-      console.log("🟢 Datos recibidos en req.body:", req.body);
+      const { name, lastName, email, role } = req.body;
+      console.log("Datos recibidos en req.body:", req.body);
 
-      // FIX: Pasamos los datos correctamente sin envolver en { user: req.body }
+      // Verificación del email
+      const existingUser = await userService.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ error: "El correo electrónico ya está registrado" });
+      }
+
+      // Validación de los campos de nombre y apellido
+      if (!name || !lastName) {
+        return res.status(400).json({ error: "Nombre y apellido son campos requeridos" });
+      }
+
+      // Crear el usuario en el servicio
       const user = await userService.create(req.body);
-
       console.log("✅ Usuario creado con éxito:", user);
+
+      // Verificar que el usuario tiene nombre y apellido antes de generar el ticket
+      if (!user.name || !user.lastName) {
+        return res.status(400).json({ error: "Nombre y apellido son necesarios para la generación del ticket" });
+      }
+
+      // Generar ticket
+      const ticket = generateTicket(user);
 
       // Enviar correo de bienvenida
       await mailService.sendMail({
         to: user.email,
         subject: "EFBE2-STORE Te da la bienvenida!",
+        type: "WELCOME",
+        ticket: ticket,
       });
 
+      // Si tienes un servicio de SMS, descomenta este bloque
       /*
-      // ⚠️ `smsService` comentado para evitar errores si aún no está implementado
       await smsService.sendMessage({
-        to: "+541134853029",
+        to: "+34694281665",
         message: `Bienvenido a EFBE2-STORE, ${user.name}!`,
       });
       */
 
-      return res.status(201).json({ user });
+      return res.status(201).json({ user, ticket });
     } catch (error) {
       next(error);
     }
   }
 
-  /**
-   * Actualiza un usuario por su ID.
-   */
+  // Actualiza un usuario por su ID.
   async update(req, res, next) {
     try {
       const { id } = req.params;
@@ -94,25 +113,37 @@ class UserController {
     }
   }
 
-  /**
-   * Elimina un usuario por su ID.
-   */
+  // Elimina un usuario por su ID.
   async delete(req, res, next) {
     try {
       const { id } = req.params;
 
-      // Validación de ID
-      if (!id || isNaN(id)) {
+      if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(400).json({ error: "Invalid user ID" });
       }
 
-      const deleted = await userService.delete(Number(id));
+      const deletedUser = await userService.delete(id);
 
-      if (!deleted) {
+      if (!deletedUser) {
         return res.status(404).json({ error: "User not found" });
       }
 
       return res.status(200).json({ message: "User deleted successfully" });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Elimina todos los usuarios
+  async deleteAll(req, res, next) {
+    try {
+      const result = await userService.deleteAll();
+
+      if (result.deletedCount === 0) {
+        return res.status(404).json({ error: "No users found to delete" });
+      }
+
+      return res.status(200).json({ message: `${result.deletedCount} users deleted successfully` });
     } catch (error) {
       next(error);
     }

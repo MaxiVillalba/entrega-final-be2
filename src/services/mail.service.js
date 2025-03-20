@@ -1,5 +1,5 @@
+// src/services/mail.service.js
 import { createTransport } from "nodemailer";
-
 import { CONFIG } from "../config/config.js";
 import { EMAIL_TYPES } from "../common/constants/email.types.js";
 
@@ -15,12 +15,11 @@ class MailService {
     });
   }
 
-  async getMessageTemplate({ type, email }) {
+  async getMessageTemplate({ type, email, ticket }) {
     let message = `
     <body style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; flex-direction: column; font-family: Arial, sans-serif; color: #333; background-color: #f4f4f4; margin: 0; padding: 0;">
     
-    <h2> Hola, ${email}! </h2>
-    
+    <h2>Hola, ${email}!</h2>
     `;
 
     switch (type) {
@@ -33,17 +32,25 @@ class MailService {
           Gracias por registrarte en EFBE2.
         `;
         break;
-      case EMAIL_TYPES.PASSWORD_RESET:
+
+      case EMAIL_TYPES.PURCHASE_CONFIRMATION:
         message += `
-          <h3 style="color: darkred">
-            Restablecimiento de Contraseña
+          <h3 style="color: darkgreen">
+            Confirmación de Compra
           </h3>
           <br>
-          Hemos recibido una solicitud para restablecer tu contraseña. Si no realizaste esta solicitud, por favor ignora este correo.
+          ¡Tu compra ha sido realizada con éxito!
+          <br>
+          Tu número de operación es: <strong>${ticket}</strong>
+        `;
+        break;
+
+      default:
+        message += `
+          <h3>Gracias por utilizar nuestros servicios</h3>
         `;
         break;
     }
-   
 
     message += `
       <br>
@@ -53,16 +60,15 @@ class MailService {
         alt="Logo"
         style="margin-top: 30px; width: 100px; height: 100px; object-fit: cover; border-radius: 50%;"
       />
-
       </body>
     `;
 
     return message;
   }
 
-  async sendMail({ to, subject, type }) {
+  async sendMail({ to, subject, type, ticket }) {
     try {
-      const html = await this.getMessageTemplate({ type, email: to });
+      const html = await this.getMessageTemplate({ type, email: to, ticket });
 
       const info = await this.transporter.sendMail({
         from: CONFIG.MAIL.FROM,
