@@ -1,9 +1,10 @@
 import { productDAO } from "../daos/product.dao.js";
 
 class ProductService {
-  async getAll() {
-    return productDAO.getAll();
-  }
+  async getAll(query) {
+    const { page = 1, limit = 10 } = query;
+    return productDAO.getAll({ page, limit });
+}
 
   async getById(id) {
     return productDAO.getById(id);

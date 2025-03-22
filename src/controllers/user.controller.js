@@ -1,4 +1,3 @@
-// src/controllers/user.controller.js
 import mongoose from "mongoose";
 import { mailService } from "../services/mail.service.js";
 import { userService } from "../services/user.service.js";
@@ -6,7 +5,7 @@ import { generateTicket } from "../utils/ticket.util.js";
 // import { smsService } from "../services/sms.service.js"; // Aún no se implementa
 
 class UserController {
-
+  // Obtiene todos los usuarios
   async getAll(req, res, next) {
     try {
       const users = await userService.getAll();
@@ -16,30 +15,38 @@ class UserController {
     }
   }
 
+  // Obtiene un usuario por ID
   async getById(req, res, next) {
     try {
       const { id } = req.params;
 
-      if (!id || isNaN(id)) {
-        return res.status(400).json({ error: "Invalid user ID" });
+      // Validación del formato del ID
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ error: "Invalid ID format" });
       }
 
-      const user = await userService.getById(Number(id));
+      const user = await userService.getById(id);
 
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
 
-      return res.status(200).json({ user });
+      res.status(200).json({ user });
     } catch (error) {
       next(error);
     }
   }
 
+  // Crea un nuevo usuario
   async create(req, res, next) {
     try {
       const { name, lastName, email, role } = req.body;
-      console.log("Datos recibidos en req.body:", req.body);
+      console.log("📩 Datos recibidos en req.body:", req.body);
+
+      // Validación de los campos requeridos
+      if (!name || !lastName || !email || !role) {
+        return res.status(400).json({ error: "Nombre, apellido, email y rol son requeridos." });
+      }
 
       // Verificación del email
       const existingUser = await userService.getUserByEmail(email);
@@ -47,56 +54,92 @@ class UserController {
         return res.status(400).json({ error: "El correo electrónico ya está registrado" });
       }
 
-      // Validación de los campos de nombre y apellido
-      if (!name || !lastName) {
-        return res.status(400).json({ error: "Nombre y apellido son campos requeridos" });
-      }
-
       // Crear el usuario en el servicio
-      const user = await userService.create(req.body);
-      console.log("✅ Usuario creado con éxito:", user);
+      const newUser = await userService.create({ name, lastName, email, role });
+      console.log("✅ Usuario creado con éxito:", newUser);
 
-      // Verificar que el usuario tiene nombre y apellido antes de generar el ticket
-      if (!user.name || !user.lastName) {
-        return res.status(400).json({ error: "Nombre y apellido son necesarios para la generación del ticket" });
+      // Asegurar que el usuario tenga los datos necesarios antes de generar el ticket
+      if (!newUser || !newUser.name || !newUser.lastName) {
+        console.error(" Error: No se generó correctamente el usuario");
+        return res.status(500).json({ error: "No se pudo registrar el usuario correctamente" });
       }
 
-      // Generar ticket
-      const ticket = generateTicket(user);
+      // Generar ticket con el formato correcto
+      const ticket = generateTicket({
+        userName: newUser.name,
+        userLastName: newUser.lastName,
+      });
 
-      // Enviar correo de bienvenida
+      console.log(`🎫 Ticket generado para registro: ${ticket.ticketCode}`);
+
+      // Enviar correo de bienvenida con el ticket
       await mailService.sendMail({
-        to: user.email,
+        to: newUser.email,
         subject: "EFBE2-STORE Te da la bienvenida!",
         type: "WELCOME",
-        ticket: ticket,
+        ticket: ticket, // Asegurarse de que el ticket sea incluido en el correo
       });
 
-      // Si tienes un servicio de SMS, descomenta este bloque
-      /*
-      await smsService.sendMessage({
-        to: "+34694281665",
-        message: `Bienvenido a EFBE2-STORE, ${user.name}!`,
+      return res.status(201).json({
+        message: "Usuario registrado exitosamente.",
+        user: newUser,
+        ticket,
       });
-      */
-
-      return res.status(201).json({ user, ticket });
     } catch (error) {
+      console.error("❌ Error al registrar usuario:", error);
       next(error);
     }
   }
 
-  // Actualiza un usuario por su ID.
+  // Realiza el checkout de un usuario
+  async checkout(req, res, next) {
+    try {
+      const { userId } = req.params;
+
+      // Validación del formato del ID
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({ error: "Invalid user ID" });
+      }
+
+      const user = await userService.getById(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Generar ticket de compra
+      const purchaseTicket = generateTicket(user);
+      console.log(`🛒 Ticket de compra generado: ${purchaseTicket.ticketCode}`);
+
+      // Enviar correo de confirmación de compra con el ticket
+      await mailService.sendMail({
+        to: user.email,
+        subject: "Confirmación de compra en EFBE2-STORE",
+        type: "PURCHASE_CONFIRMATION",
+        ticket: purchaseTicket, // Asegurarse de que el ticket sea incluido en el correo
+      });
+
+      return res.status(200).json({
+        message: "Compra realizada con éxito.",
+        user,
+        ticket: purchaseTicket,
+      });
+    } catch (error) {
+      console.error("❌ Error en el checkout:", error);
+      next(error);
+    }
+  }
+
+  // Actualiza un usuario
   async update(req, res, next) {
     try {
       const { id } = req.params;
 
-      // Validación de ID
+      // Validación del ID
       if (!id || isNaN(id)) {
         return res.status(400).json({ error: "Invalid user ID" });
       }
 
-      // Validación de datos para actualizar
+      // Verificación de los datos de actualización
       if (!req.body || Object.keys(req.body).length === 0) {
         return res.status(400).json({ error: "Update data is required" });
       }
@@ -113,11 +156,12 @@ class UserController {
     }
   }
 
-  // Elimina un usuario por su ID.
+  // Elimina un usuario
   async delete(req, res, next) {
     try {
       const { id } = req.params;
 
+      // Validación del ID
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(400).json({ error: "Invalid user ID" });
       }

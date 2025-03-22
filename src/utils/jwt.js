@@ -1,15 +1,11 @@
-import jwt from "jsonwebtoken";
-
-export const JWT_SECRET = 's3cr3t';
+// filepath: src/utils/jwt.js
+import jwt from 'jsonwebtoken';
+import { CONFIG } from '../config/config.js';
 
 export function generateToken(payload) {
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "2m",})
-    return token;
+    return jwt.sign(payload, CONFIG.JWT_SECRET, { expiresIn: '2m' });
 }
 
 export function verifyToken(token) {
-    try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        return decoded;
-    } catch (error) { throw new Error(`Token is invalid: ${error}}`)}
+    return jwt.verify(token, CONFIG.JWT_SECRET);
 }

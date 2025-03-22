@@ -68,27 +68,27 @@ class MailService {
 
   async sendMail({ to, subject, type, ticket }) {
     try {
-      const html = await this.getMessageTemplate({ type, email: to, ticket });
+        const html = await this.getMessageTemplate({ type, email: to, ticket });
 
-      const info = await this.transporter.sendMail({
-        from: CONFIG.MAIL.FROM,
-        to,
-        subject,
-        html,
-        attachments: [
-          {
-            filename: "logo.webp",
-            path: "./public/logo.webp",
-            cid: "logo",
-          },
-        ],
-      });
+        const info = await this.transporter.sendMail({
+            from: CONFIG.MAIL.FROM,
+            to,
+            subject,
+            html,
+            attachments: [
+                {
+                    filename: 'logo.png',
+                    path: './public/logo.png',
+                    cid: 'logo',
+                },
+            ],
+        });
 
-      console.log("Message sent: ", info.messageId);
+        logger.info(`Email sent to ${to}: ${info.messageId}`);
     } catch (error) {
-      console.error("Error sending email: ", error);
+        logger.error(`Error sending email to ${to}: ${error.message}`);
     }
-  }
+}
 }
 
 export const mailService = new MailService();

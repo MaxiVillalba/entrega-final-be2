@@ -1,7 +1,7 @@
 // src/services/user.service.js
 import { userDAO } from "../daos/user.dao.js";
-import { generateTicket } from "../utils/ticket.util.js"; // Importamos la función para generar ticket
-import { mailService } from "./mail.service.js"; // Importamos el servicio de mail
+import { generateTicket } from "../utils/ticket.util.js";
+import { mailService } from "./mail.service.js";
 
 class UserService {
   // Obtiene todos los usuarios
@@ -25,33 +25,43 @@ class UserService {
   // Crea un nuevo usuario
   async create(user) {
     try {
-      console.log("Datos recibidos para crear usuario:", user);
+      console.log("📩 Datos recibidos para crear usuario:", user);
 
-      // Validación para verificar si el nombre completo y el apellido están presentes
+      // Validación de datos antes de la creación
       if (!user.name || !user.lastName) {
-        throw new Error("User name or last name is missing.");
+        throw new Error("User name and last name are required for ticket generation.");
       }
 
-      // Verificamos si el email ya existe
+      // Verificar si el email ya existe
+      if (!user.email) {
+        throw new Error("User email is required.");
+      }
       const existingUser = await userDAO.getUserByEmail(user.email);
       if (existingUser) {
         throw new Error("Email is already in use");
       }
 
-      // Creamos al usuario en la base de datos
+      // Crear el usuario en la base de datos
       const newUser = await userDAO.create(user);
+      console.log("✅ Usuario creado correctamente en la base de datos:", newUser);
 
-      // Generamos un ticket para el usuario
-      const ticket = generateTicket(newUser);
+      // Generar el ticket con datos correctos
+      const ticket = generateTicket({
+        userName: newUser.name,
+        userLastName: newUser.lastName
+      });
 
-      // Enviamos el email de bienvenida con el ticket
+      console.log("🎫 Ticket generado:", ticket.ticketCode);
+
+      // Enviar correo de bienvenida
       await mailService.sendMail({
         to: newUser.email,
         subject: "EFBE2-STORE Te da la bienvenida!",
-        type: "WELCOME", // Correo de bienvenida
+        type: "WELCOME",
+        ticket: ticket // Añadido para pasar el ticket
       });
 
-      return { user: newUser, ticket }; // Devolvemos también el ticket generado
+      return { user: newUser, ticket };
     } catch (error) {
       throw new Error("Error creating user: " + error.message);
     }
@@ -69,17 +79,18 @@ class UserService {
   // Elimina un usuario
   async delete(id) {
     try {
-      return await userDAO.delete(id);  // Aquí ya pasas el id tal como es
+      return await userDAO.delete(id);
     } catch (error) {
       throw new Error("Error deleting user: " + error.message);
     }
   }
 
+  // Elimina todos los usuarios
   async deleteAll() {
     try {
       return await userDAO.deleteAll();
     } catch (error) {
-      throw new Error("Error deleting all users: " + error.message);
+      console.log("Error deleting all users: " + error.message);
     }
   }
 

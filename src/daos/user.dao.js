@@ -9,6 +9,9 @@ class UserDAO {
 
   // Obtiene un usuario por ID
   async getById(id) {
+    if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+      throw new Error("Invalid ID format");
+    }
     return User.findById(id);
   }
 
@@ -24,17 +27,24 @@ class UserDAO {
 
   // Actualiza un usuario
   async update(id, user) {
+    if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+      throw new Error("Invalid ID format");
+    }
     return User.findByIdAndUpdate(id, user, { new: true });
   }
 
-    // Elimina un usuario
-    async delete(id) {
-      return User.findByIdAndDelete(id);  // Este método ya usa el ObjectId correctamente
+  // Elimina un usuario
+  async delete(id) {
+    if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+      throw new Error("Invalid ID format");
     }
+    return User.findByIdAndDelete(id);  // Este método ya usa el ObjectId correctamente
+  }
 
-    async deleteAll(){
-      return User.deleteMany({});
-    }
+  // Elimina todos los usuarios
+  async deleteAll() {
+    return User.deleteMany({});
+  }
 }
 
 export const userDAO = new UserDAO();
