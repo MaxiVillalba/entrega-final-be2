@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { mailService } from "../services/mail.service.js";
 import { userService } from "../services/user.service.js";
 import { generateTicket } from "../utils/ticket.util.js";
+import { EMAIL_TYPES } from "../common/constants/email.types.js";
 // import { smsService } from "../services/sms.service.js"; // Aún no se implementa
 
 class UserController {
@@ -43,48 +44,52 @@ class UserController {
       const { name, lastName, email, role } = req.body;
       console.log("📩 Datos recibidos en req.body:", req.body);
 
-      // Validación de los campos requeridos
       if (!name || !lastName || !email || !role) {
         return res.status(400).json({ error: "Nombre, apellido, email y rol son requeridos." });
       }
 
-      // Verificación del email
       const existingUser = await userService.getUserByEmail(email);
       if (existingUser) {
         return res.status(400).json({ error: "El correo electrónico ya está registrado" });
       }
 
-      // Crear el usuario en el servicio
-      const newUser = await userService.create({ name, lastName, email, role });
-      console.log("✅ Usuario creado con éxito:", newUser);
+// Crear el usuario y generar el ticket
+const newUserData = await userService.create({ name, lastName, email, role });
 
-      // Asegurar que el usuario tenga los datos necesarios antes de generar el ticket
-      if (!newUser || !newUser.name || !newUser.lastName) {
-        console.error(" Error: No se generó correctamente el usuario");
-        return res.status(500).json({ error: "No se pudo registrar el usuario correctamente" });
-      }
+// Se asume que newUserData tiene la forma: { user, ticket }
+if (!newUserData || !newUserData.user || !newUserData.user.name || !newUserData.user.lastName) {
+  console.error("Error: No se generó correctamente el usuario");
+  return res.status(500).json({ error: "No se pudo registrar el usuario correctamente" });
+}
 
-      // Generar ticket con el formato correcto
-      const ticket = generateTicket({
-        userName: newUser.name,
-        userLastName: newUser.lastName,
-      });
+console.log("✅ Usuario creado con éxito:", newUserData);
+console.log(`🎫 Ticket generado para registro: ${newUserData.ticket.ticketCode}`);
 
-      console.log(`🎫 Ticket generado para registro: ${ticket.ticketCode}`);
+// Enviar correo de bienvenida con datos personalizados
+const registrationData = {
+  name: newUserData.user.name,
+  lastName: newUserData.user.lastName,
+  email: newUserData.user.email,
+  role: newUserData.user.role,
+  createdAt: newUserData.user.createdAt
+  // Agregá otros campos que desees mostrar
+};
 
-      // Enviar correo de bienvenida con el ticket
-      await mailService.sendMail({
-        to: newUser.email,
-        subject: "EFBE2-STORE Te da la bienvenida!",
-        type: "WELCOME",
-        ticket: ticket, // Asegurarse de que el ticket sea incluido en el correo
-      });
+await mailService.sendMail({
+  to: newUserData.user.email,
+  subject: `${newUserData.user.name}, EFBE2-STORE Te da la bienvenida!`,
+  type: EMAIL_TYPES.WELCOME,
+  ticket: newUserData.ticket.ticketCode,
+  name: newUserData.user.name,
+  registrationData: registrationData,
+});
 
-      return res.status(201).json({
-        message: "Usuario registrado exitosamente.",
-        user: newUser,
-        ticket,
-      });
+return res.status(201).json({
+  message: "Usuario registrado exitosamente.",
+  user: newUserData.user,
+  ticket: newUserData.ticket,
+});
+
     } catch (error) {
       console.error("❌ Error al registrar usuario:", error);
       next(error);
